@@ -21,3 +21,9 @@ clusters= 2 silhouette_score= 0.9994315204944044 inertia_= 856.98862132494
 clusters= 2 silhouette_score= 0.9994315204944044 inertia_= 856.98862132494
 clusters= 3 silhouette_score= 0.9990344389749592 inertia_= 829.6255702529807
 clusters= 4 silhouette_score= 0.9987878441445374 inertia_= 788.9907577670696
+
+print('== cleanup_cameo_columns in azdias ==')
+cleanup_cameo_columns(azdias)
+
+print("== cleanup_cameo_columns in customers ==")
+cleanup_cameo_columns(customers)
