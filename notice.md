@@ -27,3 +27,6 @@ cleanup_cameo_columns(azdias)
 
 print("== cleanup_cameo_columns in customers ==")
 cleanup_cameo_columns(customers)
+
+D19_KONSUMTYPE
+FINANZ_VORSORGER
