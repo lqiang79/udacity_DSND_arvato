@@ -1,4 +1,16 @@
-# 如何处理数据
+# 为 Arvato Financial Services 金融服务公司实现一个顾客分类报告
+
+## 前言
+
+作为优达数据科学微学位的毕业项目，我在这里选择了这个项目作为我的毕业报告。
+
+## 数据预处理
+
+### 数据的本信息
+
+### 清除不需要的信息
+
+### 
 
 1. cleanup the differnt column from customers
 
@@ -28,5 +40,19 @@ cleanup_cameo_columns(azdias)
 print("== cleanup_cameo_columns in customers ==")
 cleanup_cameo_columns(customers)
 
-D19_KONSUMTYPE
-FINANZ_VORSORGER
+'ALTER_HH',
+'ALTERSKATEGORIE_FEIN',
+'D19_KONSUMTYP',
+'FINANZ_VORSORGER',
+'FINANZTYP',
+'SEMIO_PFLICHT',
+'SEMIO_SOZ',
+'LEBENSPHASE_FEIN',
+'PRAEGENDE_JUGENDJAHRE',
+
+
+特征选择(Feature Selection)方法汇总
+https://zhuanlan.zhihu.com/p/74198735
+
+Feature Selection with sklearn and Pandas
+https://towardsdatascience.com/feature-selection-with-pandas-e3690ad8504b
