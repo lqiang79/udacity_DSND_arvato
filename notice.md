@@ -56,3 +56,11 @@ https://zhuanlan.zhihu.com/p/74198735
 
 Feature Selection with sklearn and Pandas
 https://towardsdatascience.com/feature-selection-with-pandas-e3690ad8504b
+
+
+customers_media_fillna_df, 
+customers_unknown_filled_df, 
+customers_numeric_df, 
+customers_no_nan_df
+customers_categorigcal_df, 
+customers_no_nan_df]
