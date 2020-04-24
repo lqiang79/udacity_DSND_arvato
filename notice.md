@@ -64,3 +64,35 @@ customers_numeric_df,
 customers_no_nan_df
 customers_categorigcal_df, 
 customers_no_nan_df]
+
+
+
+customers_categorigcal_df = one_hot_encode_categorie_columns(customers)
+processed_attributes = ['CAMEO_DEU_2015', 'OST_WEST_KZ']
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+
+customers_numeric_df = numeric_fillna_median(customers, numeric_attributes)
+processed_attributes = processed_attributes + list(customers_numeric_df.columns)
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+
+customers_unknown_filled_df = process_unknown_and_nan(customers, column_unknow_values, processed_attributes)
+processed_attributes = processed_attributes + list(customers_unknown_filled_df.columns)
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+
+processed_attributes = processed_attributes + list(attributes_without_meta)
+
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+
+customers = drop_no_info_columns(customers, attributes_without_meta)
+drop_grob_columns(customers_unprocessed_df)
+grob_columns = get_columns_endswith_grob(customers)
+processed_attributes = processed_attributes + grob_columns
+
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+
+customers_media_fillna_df = fill_nan_with_median(customers[get_columns_has_nan(customers_unprocessed_df)])
+processed_attributes = processed_attributes + list(customers_media_fillna_df.columns)
+customers_unprocessed_df = customers.drop(processed_attributes, axis=1, errors='ignore')
+customers_no_nan_df = customers_unprocessed_df
+customers_processed_df = pd.concat([customers_media_fillna_df, customers_unknown_filled_df, customers_numeric_df, customers_categorigcal_df, customers_no_nan_df], axis=1)
+customers_processed_df
