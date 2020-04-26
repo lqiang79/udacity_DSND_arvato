@@ -35,9 +35,13 @@
 
 我们首先加载了两个数据集Udacity_AZDIAS_052018.csv和Udacity_CUSTOMERS_052018.csv。我们知道每行数据代表一个单独的人。LNR很明显就是对应的人的索引列，所以我们将LNR列定义为DataFrame的索引列。两个数据有3列差异，这是明确的指出customers中有多余的特征'CUSTOMER_GROUP', 'ONLINE_PURCHASE', 'PRODUCT_GROUP'。我们在第一步就将其从customers中清理出去。使得customers和azdias的列数相同。
 
+接下来在我们对数据的预处理过程中，通过了多次的迭代和分析，最后我们采用对特征按照不同取值类型和范围来加以填补空值的处理，然后再进行归一化的处理。整个数据的预处理，的确再项目的实现中消耗了近80%的时间。
+
+### 针对警告信息处理
+
 我们就看到了加载数据后提示中提到的警告信息，出现在18和19列。这里我们通过查看，发现这两列中的数据是对象（object）类型有混乱的情况。这里我么也对照了元数据集中对这两列数据的可能的值的描述，发现这里同时有X和XX不是允许的数据值，另外还存在字符串和数值类型值的混合。我们把X和XX替换为nan，并且将字符串转换为数值类型。
 
-```txt
+```text
 column 18 label is CAMEO_DEUG_2015 dtype: object, it has values [nan 8.0 4.0 2.0 6.0 1.0 9.0 5.0 7.0 3.0 '4' '3' '7' '2' '8' '9' '6' '5'
  '1' 'X']
 column 19 label is CAMEO_INTL_2015 dtype: object, it has values [nan 51.0 24.0 12.0 43.0 54.0 22.0 14.0 13.0 15.0 33.0 41.0 34.0 55.0 25.0
@@ -46,18 +50,103 @@ column 19 label is CAMEO_INTL_2015 dtype: object, it has values [nan 51.0 24.0 1
  'XX']
 
 ```
+处理后我们得到了的结果如下
+
+```
+after cleanup column CAMEO_DEU_2015 has values: ['-1' '8A' '4C' '2A' '6B' '8C' '4A' '2D' '1A' '1E' '9D' '5C' '8B' '7A'
+ '5D' '9E' '9B' '1B' '3D' '4E' '4B' '3C' '5A' '7B' '9A' '6D' '6E' '2C'
+ '7C' '9C' '7D' '5E' '1D' '8D' '6C' '6A' '5B' '4D' '3A' '2B' '7E' '3B'
+ '6F' '5F' '1C']
+after cleanup column CAMEO_DEUG_2015 has values: [-1  8  4  2  6  1  9  5  7  3]
+after cleanup column CAMEO_INTL_2015 has values: [-1 51 24 12 43 54 22 14 13 15 33 41 34 55 25 23 31 52 35 45 44 32]
+```
 
 对象类型的列给我们提示，我们还发现了其他的对象类型的列D19_LETZTER_KAUF_BRANCHE， EINGEFUEGT_AM， OST_WEST_KZ和CAMEO_DEU_2015，对其中的值进行了统一化的操作，保留了nan，其他的明确的值我们将其统一成字符串。
 
 ### 分类值类型特征处理
 
-列CAMEO_DEU_2015和OST_WEST_KZ是分类值，这里我们对其进行one hot编码。这里我们利用pandas的`get_dummies`方法。轻重的nan值也同时被排除出去了。
+列CAMEO_DEU_2015和OST_WEST_KZ是分类值，这里我们对其进行one hot编码。这里我们利用pandas的`get_dummies`方法,同时列中的nan值也同时被排除出去了，减少了我们对空值的处理。通过这个操作，我们将两个列特征CAMEO_DEU_2015和OST_WEST_KZ转变为了新的46个特征。
+
+### 数值类型特征处理
+
+在DIAS Attirbutes - Values 2017.xlsx中，我们发现，有一类数据是连续的数值型（numerical value)。这些列我们采用了中值填补的方式填充nan。我们利用Sklearn中的`SimpleImputer(strategy='median')`
+
+### 有Unkown默认值的特征
+
+同样也是在元数据的描述中，一类数据存在这类似的默认描述。在含义meaning中都有类似的描述
+
+|meaning|
+|-------|
+|'unknown'|
+|'unknown / no main age detectable'|
+|'no transactions known'|
+|'no transaction known'|
+|'no Online-transactions within the last 12 months'|
+|'Inactive'|
+|'none'|
+
+对应这些描述的值就是我们可以用来填充空值的默认值。但是我们还发现，这些默认含义的可能值在DIAS Attirbutes - Values 2017.xlsx中的value并不是完全单一的。有的时候会有两个值，比如-1，0 或者-1，9。这里我们采用第一个出现的默认值，将第二个默认值也做替换处理。
+
+|	|Attribute|	Value|
+|---|----------|---------:|
+|0	|AGER_TYP	|-1|
+|5	|ALTERSKATEGORIE_GROB	|-1, 0|
+|11	|ALTER_HH	|0|
+|...	|...	|...|
+|2251	|ZABEOTYP	|-1, 9|
+
+### 没有元数据的特征
+
+在customers和azdias的两个数据集中，我们一共有364个特征列。在元数据DIAS Attributes - Values 2017.xlsx中，仅仅提供了314个特征信息。我们做了一些具体分分析。ANZ_STATISTISCHE_HAUSHALTE，EXTSEL992有大量的数值，但是我们这里缺乏具体的meta数据，这里我们决定不再保留。
+
+### 重复或近意的特征
+
+特征列LP_FAMILIE_GROB和LP_FAMILIE_FEIN，LP_LEBENSPHASE_GROB和LP_LEBENSPHASE_FEIN，还有LP_STATUS_GROB和LP_STATUS_FEIN是在描述同样的特征，不过由于取值的颗粒程度不同而产生了细致的（FEIN）和粗略的（GROB）的区别。同时，也通过图形的方式我们观察了数据值的具体分布，进一步证明了这些数据的重复性。下图是以LP_LEBENSPHASE_FEIN和LP_LEBENSPHASE_GROB的对比。
+
+![LP_LEBENSPHASE_FEIN vs LP_LEBENSPHASE_GROB](imgs/fein_grob.png)
+
+在这里我们保留了细致的特征，舍去了粗略的特征，以避免特征的重复。同样在保留下来的LP_FAMILIE_FEIN， LP_LEBENSPHASE_FEIN和LP_STATUS_FEIN的列，我们也使用中值填充的方式填补了空值。
+
+在分析中我们还发现D19_LETZTER_KAUF_BRANCHE的值刚好对应了其他D19的列。CJT_KATALOGNUTZER也是类似情况，被其他CJT列所重复。在我的实现中我们也将其删除了。
+
+GEBURTSJAHR是出身年份，我们还有其他的列含有相关年龄的列ALTER_HH所以我们也决定忽略。
+
+### 数据归一化
+
+经过一番数据补空的工作后，我们采用了sklearn中的StandardScaler对数据进行归一化的出列。我们对补空后的每一个特征逐一进行了归一化操作。
+
+---------------------------
+
+## 2.顾客分类报告
+
+在这部分中，目标是使用非监督学习技术来刻画公司已有顾客和德国一般人群的人口统计数据的关系。最后回答问题，一般人群中的哪一类人更可能是邮购公司的主要核心顾客，哪些人则很可能不是。
+
+### PCA主成分分析
+
+在预处理过程中我们删除了缺少描述的特征，其它特征我们做了保留，最后得到的还有348个列。在customers有191652行数据。在azdias中有891221行。对于这样高维度的数据使用了PCA主成分分析是一种普遍的降维做法。首先我们绘制的累计可解释方差贡献率曲线，通过观察的方式来决定希望保留信息量和降维后维度之间的关系。
+
+![累计可解释方差贡献率曲线](imgs/pca_cev.png)
+
+在图上可以看到为了保留95%的信息，看到我们选择降维到195。这195个维度刚好可以理解为保留的新的主成分。经过了降维后，我们对新的主成分以及他和原始特征之间的关系及加以分析。
+
+*TODO*
+
+### K-Means 聚类
+
+通过K-Means聚类，找到合适的K聚类的数量是一个核心的问题。这里我们利用肘部方法确定K的值。
+![KMeans](imgs/kmeans.png)
+通过上图，我们选择聚类的数量K=10。
+
+在使用kmeans我们还对比了sklearn中的KMeans和MiniBatchKMeans。对于同样的数据集我们可以看到miniBatchKMeans的性能明显好于KMeans。所以我们采用了MiniBatchKMeans。
+
+
+
+
+
 
 
 
 ---------------------------
-
-
 
 ## 问题描述
 
