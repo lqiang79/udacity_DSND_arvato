@@ -117,7 +117,7 @@ after cleanup column CAMEO_INTL_2015 has values: [-1 51 24 12 43 54 22 14 13 15 
 |'Inactive'|
 |'none'|
 
-对应这些描述的值就可以用来作为默认值填充空值。但是我们还发现，这些默认含义的可能值在DIAS Attirbutes - Values 2017.xlsx中的value并不是完全单一的。有的时候会有两个值，比如-1，0 或者-1，9。这里采用第一个出现的默认值，将第二个默认值也做替换处理。
+对应这些描述的值就可以用来作为默认值填充空值。但是我们还发现，这些默认含义的可能值在DIAS Attirbutes - Values 2017.xlsx中的value并不是完全单一的。有的时候会有两个值，比如-1，0 或者-1，9。这里将这些默认值先变为nan，然后用中值填替换处理。
 
 |	|Attribute|	Value|
 |---|----------|---------:|
@@ -168,9 +168,9 @@ after cleanup column CAMEO_INTL_2015 has values: [-1 51 24 12 43 54 22 14 13 15 
 
 * FINANZ_UNAUFFAELLIGER 客户中有财务问题的相对低
 * FINANZ_ANLEGER 多数客户拥有较高的理财投资
+* D19_KONSUMTYP_MAX 这是在Reviewer提示下保留的重要特征之一，但是我没有具体的描述信息
 * FINANZ_SPARER 客户相对有高的存款积蓄
 * D19_KONSUMTYP 消费结构，客户在美食消费占比高
-* SEMIO_REL 客户人群分布在有一定宗教信仰的人中偏多
 
 ### K-Means聚类
 
@@ -232,19 +232,22 @@ LogisticRegression(C=0.45, class_weight={0: 0.92, 1: 0.08}, dual=False,
 
 ![](imgs/roc_lr_after.png)
 
+通过反思模型发现在train_test_split中加上了参数`stratify=mailout_train_y`，让训练数据避免不平衡性也可以作为调节模型的方法。这就是类似交叉验证打分是中使用的cv参数。
+
+![](imgs/roc_lr_after_stratify.png)
 
 ---------------------------
 
 ## Kaggle比赛
 
-终于可以看看自己在项目中的成果了，我们把训练好的模型运用到了提供的MAILOUT_TEST
-中。最后把我们的看看我们的成绩
+终于可以看看自己在项目中的成果了，我们把训练好的模型运用到了提供的MAILOUT_TEST中。最后把我们的看看我们的成绩
 
 ![Kaggle position](imgs/kaggle.png)
 
-
 ---------------------------
 ## 总结
+
+反思我们的模型调参的过程，我们发现了一个重要方向就是我们的数据不平衡性。在MAIL_TRAIN中我们仅有1.2%的数据拥有Response=1。正对这一特点，在调参的过程中对于参数`class_weight={0: 0.92, 1: 0.08}`修改。结果在ROC评分上相对其它参数的调节上有很大的提高。起初我们在拆分训练和测试数据上没有为数据不平衡加以考虑。在最后尝试中，对train_test_split中加上了参数`stratify=mailout_train_y`也对模型有了很大的提高。这个参数也弥补了数据不平衡对模型的负面影响。这里的结论是，在数据平衡性不好的情况下，有针对的调差和拆分数据可以提高模型的性能。
 
 通过这个毕业项目，让我有机会从头至尾的了解到了一个真实数据项目的概貌。从开始探索原始数据，运用数据工程对数据进行清洗处理，针对实际问题构建模型到最后模型评估和调试是一个复杂而有有趣的过程。而且每一个步骤都可以不断的作为一个单独的方向加以提升和改进。诸如：
     
@@ -254,6 +257,8 @@ LogisticRegression(C=0.45, class_weight={0: 0.92, 1: 0.08}, dual=False,
 * 当然，由于个人再Python上的经验有限，提高使用numpy，pandas和sklearn了解和经验也会是我个人的下一个学习目标
 
 最后在这里，要为优达学城数据科学家课程在这里点赞。感谢你们提供的精彩课程和周到的服务和指导，通过这个课程为我通向打开数据科学的大门。
+
+_项目的具体代码可以在我的[Github](https://github.com/lqiang79/udacity_DSND_arvato)上找到。_
 
 ---------------------------
 
